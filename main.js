@@ -12,6 +12,8 @@ let editingIndex = null;
     Handle nav links to pages
 ** **************************/
 function showDashboard() {
+  editingIndex = null;
+
   const upcoming = getUpcomingAssignments();
   const past = getPastAssignments();
   const progress = getAcademicProgress();
@@ -23,8 +25,8 @@ function showDashboard() {
             ${renderAssignmentsTable(upcoming)}
         </section>
         <section>
-            <h2>Past Assignments</h2>
-            ${renderAssignmentsTable(past)}
+            <h2>Past Due Assignments</h2>
+            ${renderAssignmentsTable(past, true)}
         </section>
         <section>
             <h2>Academic Progress</h2>
@@ -81,6 +83,8 @@ function showAssignments() {
 }
 
 function showStudyLog() {
+  editingIndex = null;
+
   document.getElementById("app").innerHTML = `
         <h1>Study Log</h1>
         <form id="study-form">
@@ -94,7 +98,7 @@ function showStudyLog() {
             <input type="number" id="study-duration" placeholder="Duration (minutes)" required min="1">
             <button type="submit">Add Session</button>
         </form>
-        <table id="assignments-table">
+        <table id="study-table">
             <thead>
                 <tr>
                     <th>Subject</th>
@@ -120,6 +124,8 @@ function showStudyLog() {
 }
 
 function showCalendar() {
+  editingIndex = null;
+
   document.getElementById("app").innerHTML = `
         <h1>Calendar</h1>
         <p>Your calendar will appear here.</p>
@@ -127,6 +133,8 @@ function showCalendar() {
 }
 
 function showSettings() {
+  editingIndex = null;
+
   document.getElementById("app").innerHTML = `
         <h1>Settings</h1>
         <p>Settings go here.</p>
@@ -241,10 +249,13 @@ function displayAssignments() {
                     <td>
                         <input type="checkbox" onchange="toggleComplete(${i})" ${
           a.completed ? "checked" : ""
-        }>
+        } ${editingIndex === i ? "disabled" : ""}>
+
                     </td>
                     <td>
-                        <button onclick="editAssignment(${i})">Edit</button>
+                        <button onclick="editAssignment(${i})" ${
+          a.completed ? "disabled" : ""
+        }>Edit</button>
                         <button onclick="deleteAssignment(${i})">Delete</button>
                     </td>
                 </tr>
@@ -289,10 +300,13 @@ function saveEdit(index) {
   const newSubject = document.getElementById("edit-subject").value;
   const newTitle = document.getElementById("edit-title").value;
 
+  const oldAssignment = assignments[index];
   assignments[index] = {
     dueDate: newDue,
     subject: newSubject,
     title: newTitle,
+    completed: oldAssignment.completed || false,
+    completedOn: oldAssignment.completedOn || null,
   };
   saveAssignments(assignments);
   editingIndex = null;
@@ -300,7 +314,7 @@ function saveEdit(index) {
 }
 window.saveEdit = saveEdit;
 
-function renderAssignmentsTable(assignments) {
+function renderAssignmentsTable(assignments, showCompleted = false) {
   if (assignments.length === 0) {
     return "<p>No assignments found.</p>";
   }
@@ -392,6 +406,7 @@ function displayStudyLog() {
 /* *********************************
     Dashboard
 ** ********************************/
+
 function getUpcomingAssignments(days = 7) {
   const assignments = getAssignments();
   const now = new Date();
@@ -399,15 +414,17 @@ function getUpcomingAssignments(days = 7) {
   soon.setDate(now.getDate() + days);
   return assignments.filter((a) => {
     const due = new Date(a.dueDate);
-    return due >= now && due <= soon && !a.completed;
+    return !a.completed && due >= now && due <= soon;
   });
 }
 
 function getPastAssignments() {
   const assignments = getAssignments();
   const now = new Date();
+  now.setHours(0, 0, 0, 0);
   return assignments.filter((a) => {
     const due = new Date(a.dueDate);
+    due.setHours(0, 0, 0, 0);
     return due < now;
   });
 }

@@ -11,6 +11,12 @@ button[onclick^="deleteAssignment"] {
   background: #e0e0e0;
 }
 
+button:disabled {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
 .assignments-table {
   width: 100%;
   border-collapse: collapse;
