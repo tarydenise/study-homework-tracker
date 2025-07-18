@@ -8,9 +8,9 @@ const subjects = ["Math", "Science", "English", "History", "Art"];
 ** ********************/
 let editingIndex = null;
 
-/* ********************
-    Handle nav links
-** ********************/
+/* ***************************
+    Handle nav links to pages
+** **************************/
 function showDashboard() {
   document.getElementById("app").innerHTML = `
         <h1>Dashboard</h1>
@@ -60,8 +60,40 @@ function showAssignments() {
 function showStudyLog() {
   document.getElementById("app").innerHTML = `
         <h1>Study Log</h1>
-        <p>Your study sessions will appear here.</p>
+        <form id="study-form">
+            <select id="study-subject" required>
+              <option value="">Select Subject</option>
+              ${subjects
+                .map((subj) => `<option value="${subj}">${subj}</option>`)
+                .join("")}
+            </select>
+            <input type="date" id="study-date" required>
+            <input type="number" id="study-duration" placeholder="Duration (minutes)" required min="1">
+            <button type="submit">Add Session</button>
+        </form>
+        <table id="study-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Duration (min)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Study rows go here -->
+            </tbody>
+        </table>
     `;
+
+  displayStudyLog();
+
+  document
+    .getElementById("study-form")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      addStudySession();
+    });
 }
 
 function showCalendar() {
@@ -120,6 +152,11 @@ function addAssignment() {
 }
 
 function deleteAssignment(index) {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this assignment?"
+  );
+  if (!confirmDelete) return;
+
   const assignments = getAssignments();
   assignments.splice(index, 1);
   saveAssignments(assignments);
@@ -133,7 +170,6 @@ function displayAssignments() {
   tbody.innerHTML = assignments
     .map((a, i) => {
       if (i === editingIndex) {
-        // Show input fields for editing
         return `
                 <tr>
                     <td><input type="date" id="edit-due" value="${
@@ -178,7 +214,6 @@ function displayAssignments() {
     .join("");
 }
 
-// global function to delete assignment
 window.deleteAssignment = deleteAssignment;
 
 function editAssignment(index) {
@@ -209,3 +244,62 @@ function saveEdit(index) {
   displayAssignments();
 }
 window.saveEdit = saveEdit;
+
+/* *********************************
+    Data Storage for Study Log
+** ********************************/
+function getStudyLog() {
+  return JSON.parse(localStorage.getItem("studyLog") || "[]");
+}
+
+function saveStudyLog(log) {
+  localStorage.setItem("studyLog", JSON.stringify(log));
+}
+
+function addStudySession() {
+  const subject = document.getElementById("study-subject").value;
+  const date = document.getElementById("study-date").value;
+  const duration = document.getElementById("study-duration").value;
+
+  if (!subject || !date || !duration) return;
+
+  const log = getStudyLog();
+  log.push({ subject, date, duration });
+  saveStudyLog(log);
+  displayStudyLog();
+  document.getElementById("study-form").reset();
+}
+
+function deleteStudySession(index) {
+  const confirmDelete = window.confirm("Delete this study session?");
+  if (!confirmDelete) return;
+
+  const log = getStudyLog();
+  log.splice(index, 1);
+  saveStudyLog(log);
+  displayStudyLog();
+}
+window.deleteStudySession = deleteStudySession;
+
+/* *********************************
+    Display Study Log
+** ********************************/
+function displayStudyLog() {
+  const log = getStudyLog();
+  const tbody = document.querySelector("#study-table tbody");
+  if (!tbody) return;
+  tbody.innerHTML = log
+    .map(
+      (s, i) => `
+        <tr>
+            <td>${s.subject}</td>
+            <td>${s.date}</td>
+            <td>${s.duration}</td>
+            <td>
+                <button onclick="deleteStudySession(${i})">Delete</button>
+            </td>
+        </tr>
+    `
+    )
+    .join("");
+}
