@@ -1,0 +1,12 @@
+button {
+  padding: 0.3em 1em;
+  border-radius: 15px;
+  border: none;
+  margin: 0 2px;
+  cursor: pointer;
+  font-weight: bold;
+}
+button[onclick^="editAssignment"],
+button[onclick^="deleteAssignment"] {
+  background: #e0e0e0;
+}
