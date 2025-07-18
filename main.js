@@ -12,9 +12,31 @@ let editingIndex = null;
     Handle nav links to pages
 ** **************************/
 function showDashboard() {
+  const upcoming = getUpcomingAssignments();
+  const past = getPastAssignments();
+  const progress = getAcademicProgress();
+
   document.getElementById("app").innerHTML = `
         <h1>Dashboard</h1>
-        <p>Welcome to your Study & Homework Tracker!</p>
+        <section>
+            <h2>Upcoming Assignments</h2>
+            ${renderAssignmentsTable(upcoming)}
+        </section>
+        <section>
+            <h2>Past Assignments</h2>
+            ${renderAssignmentsTable(past)}
+        </section>
+        <section>
+            <h2>Academic Progress</h2>
+            <p>${progress.completed} out of ${
+    progress.total
+  } assignments completed (${progress.percent}%)</p>
+            <div style="background:#eee;width:100%;border-radius:10px;overflow:hidden;">
+                <div style="background:#4caf50;height:20px;width:${
+                  progress.percent
+                }%;"></div>
+            </div>
+        </section>
     `;
 }
 
@@ -38,6 +60,7 @@ function showAssignments() {
                     <th>Due Date</th>
                     <th>Subject</th>
                     <th>Title</th>
+                    <th>Complete</th>
                 </tr>
             </thead>
             <tbody>
@@ -71,7 +94,7 @@ function showStudyLog() {
             <input type="number" id="study-duration" placeholder="Duration (minutes)" required min="1">
             <button type="submit">Add Session</button>
         </form>
-        <table id="study-table">
+        <table id="assignments-table">
             <thead>
                 <tr>
                     <th>Subject</th>
@@ -125,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /* *********************************
-Store Assignments in localStorage
+    Assignments
 ** ********************************/
 function getAssignments() {
   return JSON.parse(localStorage.getItem("assignments") || "[]");
@@ -143,7 +166,13 @@ function addAssignment() {
   if (!title || !subject || !dueDate) return;
 
   const assignments = getAssignments();
-  assignments.push({ title, subject, dueDate });
+  assignments.push({
+    title,
+    subject,
+    dueDate,
+    completed: false,
+    completedOn: null,
+  });
   saveAssignments(assignments);
   displayAssignments();
 
@@ -169,27 +198,33 @@ function displayAssignments() {
   if (!tbody) return;
   tbody.innerHTML = assignments
     .map((a, i) => {
+      // Edit mode for a specific row
       if (i === editingIndex) {
         return `
                 <tr>
-                    <td><input type="date" id="edit-due" value="${
-                      a.dueDate
-                    }"></td>
                     <td>
-                      <select id="edit-subject">
-                        ${subjects
-                          .map(
-                            (subj) =>
-                              `<option value="${subj}" ${
-                                a.subject === subj ? "selected" : ""
-                              }>${subj}</option>`
-                          )
-                          .join("")}
-                      </select>
+                        <input type="date" id="edit-due" value="${a.dueDate}">
                     </td>
-                    <td><input type="text" id="edit-title" value="${
-                      a.title
-                    }"></td>
+                    <td>
+                        <select id="edit-subject">
+                            ${subjects
+                              .map(
+                                (subj) =>
+                                  `<option value="${subj}" ${
+                                    a.subject === subj ? "selected" : ""
+                                  }>${subj}</option>`
+                              )
+                              .join("")}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" id="edit-title" value="${a.title}">
+                    </td>
+                    <td>
+                        <input type="checkbox" id="edit-completed" ${
+                          a.completed ? "checked" : ""
+                        }>
+                    </td>
                     <td>
                         <button onclick="saveEdit(${i})">Save</button>
                         <button onclick="cancelEdit()">Cancel</button>
@@ -197,12 +232,17 @@ function displayAssignments() {
                 </tr>
             `;
       } else {
-        // Normal row
+        // Normal display row
         return `
                 <tr>
                     <td>${a.dueDate}</td>
                     <td>${a.subject}</td>
                     <td>${a.title}</td>
+                    <td>
+                        <input type="checkbox" onchange="toggleComplete(${i})" ${
+          a.completed ? "checked" : ""
+        }>
+                    </td>
                     <td>
                         <button onclick="editAssignment(${i})">Edit</button>
                         <button onclick="deleteAssignment(${i})">Delete</button>
@@ -213,8 +253,23 @@ function displayAssignments() {
     })
     .join("");
 }
-
 window.deleteAssignment = deleteAssignment;
+
+function toggleComplete(index) {
+  const assignments = getAssignments();
+  const assignment = assignments[index];
+  assignment.completed = !assignment.completed;
+
+  if (assignment.completed) {
+    assignment.completedOn = new Date().toISOString().slice(0, 10);
+  } else {
+    assignment.completedOn = null;
+  }
+
+  saveAssignments(assignments);
+  displayAssignments();
+}
+window.toggleComplete = toggleComplete;
 
 function editAssignment(index) {
   editingIndex = index;
@@ -244,6 +299,36 @@ function saveEdit(index) {
   displayAssignments();
 }
 window.saveEdit = saveEdit;
+
+function renderAssignmentsTable(assignments) {
+  if (assignments.length === 0) {
+    return "<p>No assignments found.</p>";
+  }
+  return `
+        <table class="assignments-table">
+            <thead>
+                <tr>
+                    <th>Due Date</th>
+                    <th>Subject</th>
+                    <th>Title</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${assignments
+                  .map(
+                    (a) => `
+                    <tr>
+                        <td>${a.dueDate}</td>
+                        <td>${a.subject}</td>
+                        <td>${a.title}</td>
+                    </tr>
+                `
+                  )
+                  .join("")}
+            </tbody>
+        </table>
+    `;
+}
 
 /* *********************************
     Data Storage for Study Log
@@ -302,4 +387,35 @@ function displayStudyLog() {
     `
     )
     .join("");
+}
+
+/* *********************************
+    Dashboard
+** ********************************/
+function getUpcomingAssignments(days = 7) {
+  const assignments = getAssignments();
+  const now = new Date();
+  const soon = new Date();
+  soon.setDate(now.getDate() + days);
+  return assignments.filter((a) => {
+    const due = new Date(a.dueDate);
+    return due >= now && due <= soon && !a.completed;
+  });
+}
+
+function getPastAssignments() {
+  const assignments = getAssignments();
+  const now = new Date();
+  return assignments.filter((a) => {
+    const due = new Date(a.dueDate);
+    return due < now;
+  });
+}
+
+function getAcademicProgress() {
+  const assignments = getAssignments();
+  const total = assignments.length;
+  const completed = assignments.filter((a) => a.completed).length;
+  const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+  return { total, completed, percent };
 }
