@@ -1,7 +1,23 @@
-/* ****************************************************
-    temporary array for Subject dropdown to edit later
-** ***************************************************/
-const subjects = ["Math", "Science", "English", "History", "Art"];
+// On page load, set theme
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark");
+}
+
+// subjects in localStorage
+function getSubjects() {
+  return (
+    JSON.parse(localStorage.getItem("subjects")) || [
+      "Math",
+      "Science",
+      "English",
+      "History",
+      "Art",
+    ]
+  );
+}
+function saveSubjects(subjects) {
+  localStorage.setItem("subjects", JSON.stringify(subjects));
+}
 
 /* ********************
     Variables
@@ -49,7 +65,7 @@ function showAssignments() {
             <input type="text" id="assignment-title" placeholder="Title" required>
             <select id="assignment-subject" required>
             <option value="">Select Subject</option>
-            ${subjects
+            ${getSubjects()
               .map((subj) => `<option value="${subj}">${subj}</option>`)
               .join("")}
             </select>
@@ -90,7 +106,7 @@ function showStudyLog() {
         <form id="study-form">
             <select id="study-subject" required>
               <option value="">Select Subject</option>
-              ${subjects
+              ${getSubjects()
                 .map((subj) => `<option value="${subj}">${subj}</option>`)
                 .join("")}
             </select>
@@ -125,21 +141,156 @@ function showStudyLog() {
 
 function showCalendar() {
   editingIndex = null;
-
   document.getElementById("app").innerHTML = `
-        <h1>Calendar</h1>
-        <p>Your calendar will appear here.</p>
-    `;
+    <h1>Calendar</h1>
+    <div id="calendar"></div>
+  `;
+
+  // Gather assignment and study events
+  const assignmentEvents = getAssignments().map((a) => ({
+    title: `Assignment: ${a.subject} - ${a.title}${a.completed ? " ✔️" : ""}`,
+    start: a.dueDate,
+    allDay: true,
+    color: a.completed ? "#85e085" : "#2d5be3",
+  }));
+  const studyEvents = getStudyLog().map((s) => ({
+    title: `Study: ${s.subject} - ${s.duration} min`,
+    start: s.date,
+    allDay: true,
+    color: "#f7ca18",
+  }));
+  const events = assignmentEvents.concat(studyEvents);
+
+  setTimeout(() => {
+    const calendarEl = document.getElementById("calendar");
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      events: events,
+    });
+    calendar.render();
+  }, 0);
 }
 
 function showSettings() {
   editingIndex = null;
+  const isDark = localStorage.getItem("theme") === "dark";
+  const subjects = getSubjects();
 
   document.getElementById("app").innerHTML = `
-        <h1>Settings</h1>
-        <p>Settings go here.</p>
-    `;
+    <h1>Settings</h1>
+    <section>
+      <h2>Customize</h2>
+      <label style="display:flex;align-items:center;gap:0.5em;">
+        <input type="checkbox" id="theme-toggle" ${isDark ? "checked" : ""}>
+        Dark Mode
+      </label>
+    </section>
+    <section style="margin-top:2em;">
+      <h2>Manage Subjects</h2>
+      <form id="add-subject-form" style="margin-bottom:1em;">
+        <input type="text" id="new-subject" placeholder="New subject" required>
+        <button type="submit">Add</button>
+      </form>
+      <ul id="subjects-list">
+        ${subjects
+          .map(
+            (subj, i) =>
+              `<li>${subj} <button data-index="${i}" class="remove-subject-btn" style="color:#d33;">Remove</button></li>`
+          )
+          .join("")}
+      </ul>
+    </section>
+    <section style="margin-top:2em;">
+      <button id="reset-data-btn" style="background:#fa6666;color:white;padding:0.5em 1.5em;border:none;border-radius:12px;font-weight:bold;">Reset All Data</button>
+      <p style="color:#c00;">Warning: This will delete ALL your assignments and study log data. This action cannot be undone.</p>
+    </section>
+  `;
+
+  // Dark mode toggle
+  document
+    .getElementById("theme-toggle")
+    .addEventListener("change", function (e) {
+      if (e.target.checked) {
+        document.body.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+      }
+    });
+
+  // Add subject
+  document
+    .getElementById("add-subject-form")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const val = document.getElementById("new-subject").value.trim();
+      if (val && !subjects.includes(val)) {
+        subjects.push(val);
+        saveSubjects(subjects);
+        showSettings();
+      }
+    });
+
+  // Remove subject
+  document.querySelectorAll(".remove-subject-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const index = Number(btn.getAttribute("data-index"));
+      const subjects = getSubjects();
+      const subjectToRemove = subjects[index];
+
+      // Check if subject is used
+      const usedInAssignments = getAssignments().some(
+        (a) => a.subject === subjectToRemove
+      );
+      const usedInStudyLog = getStudyLog().some(
+        (s) => s.subject === subjectToRemove
+      );
+
+      if (usedInAssignments || usedInStudyLog) {
+        if (
+          !window.confirm(
+            `"${subjectToRemove}" is used in your assignments or study log.\n\nIf you remove it, ALL assignments and study log entries with this subject will be permanently deleted.\n\nAre you sure you want to continue?`
+          )
+        ) {
+          return;
+        }
+
+        // Remove from all assignments
+        let assignments = getAssignments();
+        assignments = assignments.filter((a) => a.subject !== subjectToRemove);
+        saveAssignments(assignments);
+
+        // Remove from all study logs
+        let studyLog = getStudyLog();
+        studyLog = studyLog.filter((s) => s.subject !== subjectToRemove);
+        saveStudyLog(studyLog);
+      }
+
+      // Remove from subjects list
+      subjects.splice(index, 1);
+      saveSubjects(subjects);
+      showSettings();
+    });
+  });
+
+  // Reset all data
+  document
+    .getElementById("reset-data-btn")
+    .addEventListener("click", function () {
+      if (
+        window.confirm(
+          "Are you sure you want to delete all assignments, study log, and subject list? This cannot be undone."
+        )
+      ) {
+        localStorage.removeItem("assignments");
+        localStorage.removeItem("studyLog");
+        localStorage.removeItem("subjects");
+        showSettings();
+      }
+    });
 }
+
 document.addEventListener("DOMContentLoaded", function () {
   showDashboard();
 
@@ -215,12 +366,10 @@ function displayAssignments() {
                     </td>
                     <td>
                         <select id="edit-subject">
-                            ${subjects
+                            ${getSubjects()
                               .map(
                                 (subj) =>
-                                  `<option value="${subj}" ${
-                                    a.subject === subj ? "selected" : ""
-                                  }>${subj}</option>`
+                                  `<option value="${subj}">${subj}</option>`
                               )
                               .join("")}
                         </select>

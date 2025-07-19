@@ -31,3 +31,27 @@ button:disabled {
 .assignments-table th {
   background: #f4f4f4;
 }
+
+/* Light/Dark Theme */
+body.dark {
+  background: #181818;
+  color: #eee;
+}
+body.dark table,
+body.dark input,
+body.dark select,
+body.dark button {
+  background: #232323;
+  color: #eee;
+  border-color: #444;
+}
+body.dark .assignments-table th,
+body.dark .assignments-table td {
+  background: #232323;
+  color: #eee;
+}
+body.dark h1,
+body.dark h2,
+body.dark h3 {
+  color: #99cfff;
+}
