@@ -1,57 +1,474 @@
-button {
-  padding: 0.3em 1em;
-  border-radius: 15px;
+:root {
+  /* Colors */
+  --color-bg: #fff;
+  --color-section: #f3f4f6;
+  --color-card: #f3f4f6;
+  --color-gray-medium: #d1d5db;
+  --color-gray-dark: #6b7280;
+  --color-border: #e5e7eb;
+  --color-primary: #3b82f6;
+  --color-primary-light: #60a5fa;
+  --color-success: #34d399;
+  --color-error: #f87171;
+  --color-alert: #facc15;
+  --color-text-main: #222;
+  --color-text-secondary: #6b7280;
+  --color-focus: #60a5fa66;
+  /* Typography */
+  --font-main: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.3rem;
+  --font-size-sm: 0.95rem;
+  /* Spacing */
+  --section-padding: 24px;
+  --card-padding: 18px;
+  --card-radius: 16px;
+  --input-radius: 8px;
+  --button-radius: 999px;
+  --gap: 1.1em;
+  --shadow-card: 0 2px 16px #0001;
+}
+
+/* General Layout */
+body {
+  background: var(--color-bg);
+  color: var(--color-text-main);
+  font-family: var(--font-main);
+  margin: 0;
+  padding: 0;
+  font-size: var(--font-size-base);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  margin-bottom: 0.7em;
+  font-family: var(--font-main);
+  letter-spacing: 0.01em;
+}
+
+#app {
+  max-width: 850px;
+  margin: 2em auto;
+  background: var(--color-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  padding: var(--section-padding) 1em 2.5em 1em;
+}
+
+section {
+  background: var(--color-section);
+  border-radius: var(--card-radius);
+  margin-bottom: 1.8em;
+  padding: var(--card-padding);
+  box-shadow: 0 1px 6px #0001;
+}
+
+/* Navigation Bar */
+.navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--color-primary);
+  padding: 0.5em 0;
+  margin-bottom: 2em;
+  gap: 0.2em;
+}
+.nav-btn {
+  background: transparent;
+  border: 2px solid transparent;
+  color: #fff;
+  font-size: 1.09em;
+  margin: 0 0.7em;
+  padding: 0.7em 1.3em;
+  border-radius: var(--button-radius);
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: background 0.14s, border-color 0.18s, color 0.13s;
+}
+.nav-btn:hover,
+.nav-btn.active {
+  background: var(--color-primary-light);
+  border-color: #fff;
+  color: #fff;
+  outline: none;
+}
+.nav-btn:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Forms */
+form {
+  display: flex;
+  gap: var(--gap);
+  margin-bottom: 1.3em;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+form input,
+form select {
+  padding: 0.47em 1em;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--input-radius);
+  font-size: 1em;
+  box-shadow: none;
+  transition: border-color 0.18s, box-shadow 0.19s;
+  background: #fff;
+  color: var(--color-text-main);
+  font-family: var(--font-main);
+}
+
+form input:focus,
+form select:focus {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 2px var(--color-focus);
+  outline: none;
+}
+
+input::placeholder {
+  color: var(--color-gray-dark);
+  opacity: 1;
+}
+
+/* Buttons */
+button,
+input[type="submit"],
+input[type="button"] {
+  border-radius: var(--button-radius);
   border: none;
-  margin: 0 2px;
   cursor: pointer;
   font-weight: bold;
+  font-family: var(--font-main);
+  font-size: 1em;
+  padding: 0.5em 1.5em;
+  margin: 0 0.3em;
+  background: var(--color-primary);
+  color: #fff;
+  transition: background 0.13s, color 0.13s, box-shadow 0.13s;
+  outline: none;
 }
-button[onclick^="editAssignment"],
-button[onclick^="deleteAssignment"] {
-  background: #e0e0e0;
+button:focus,
+input[type="submit"]:focus,
+input[type="button"]:focus {
+  outline: 2.5px solid var(--color-focus);
+  outline-offset: 2px;
 }
-
-button:disabled {
-  background: #eee;
-  color: #aaa;
+button.secondary {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary-light);
+}
+button:disabled,
+input[type="submit"]:disabled,
+input[type="button"]:disabled {
+  background: var(--color-gray-medium);
+  color: #bbb;
   cursor: not-allowed;
+  border-color: var(--color-border);
 }
 
-.assignments-table {
+/* Danger/Error/Alert Buttons */
+button.danger {
+  background: var(--color-error);
+  color: #fff;
+}
+button.alert {
+  background: var(--color-alert);
+  color: #222;
+}
+
+/* Assignments Table, Study Table */
+.assignments-table,
+#study-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1.5em;
+  background: #fff;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 .assignments-table th,
-.assignmments-table td {
-  border: 1px solid #ccc;
-  padding: 0.5em;
-  text-align: left;
+.assignments-table td,
+#study-table th,
+#study-table td {
+  border: 1px solid var(--color-border);
+  padding: 0.72em 1em;
+  text-align: center;
+  font-size: 1em;
 }
-.assignments-table th {
-  background: #f4f4f4;
+.assignments-table th,
+#study-table th {
+  background: var(--color-section);
+  font-weight: bold;
+  letter-spacing: 0.01em;
+}
+.assignments-table tr:nth-child(even),
+#study-table tr:nth-child(even) {
+  background: #fafbff;
+}
+.assignments-table tr.overdue td {
+  color: var(--color-error);
+  font-weight: bold;
+}
+.assignments-table td input[type="checkbox"] {
+  transform: scale(1.28);
+}
+#study-table {
+  margin-top: 1em;
 }
 
-/* Light/Dark Theme */
+/* Cards/Sections */
+.card,
+.section-card {
+  background: var(--color-card);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  padding: var(--card-padding);
+  margin-bottom: 1.3em;
+}
+
+/* Progress Bar */
+.progress-bar-bg {
+  background: var(--color-border);
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0.7em 0 1.2em 0;
+}
+.progress-bar-fill {
+  background: var(--color-success);
+  height: 20px;
+  width: 0%;
+  transition: width 0.6s;
+}
+
+/* Subject List in Settings */
+#subjects-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.5em 0 0 0;
+}
+#subjects-list li {
+  padding: 0.3em 0.2em;
+  color: var(--color-text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.remove-subject-btn {
+  background: transparent;
+  color: var(--color-error);
+  border: none;
+  font-size: 1em;
+  cursor: pointer;
+  margin-left: 0.8em;
+  font-weight: bold;
+  padding: 0.1em 0.8em;
+  border-radius: 7px;
+  transition: background 0.13s, color 0.13s;
+}
+.remove-subject-btn:hover,
+.remove-subject-btn:focus {
+  background: var(--color-error);
+  color: #fff;
+  outline: none;
+}
+
+/* Alerts and Errors */
+.error {
+  color: var(--color-error);
+  background: #fff0f0;
+  padding: 0.7em 1em;
+  border-radius: 8px;
+  margin-bottom: 1em;
+}
+.alert {
+  color: #7b5800;
+  background: #fffbe7;
+  padding: 0.7em 1em;
+  border-radius: 8px;
+  margin-bottom: 1em;
+}
+
+/* Empty State */
+.empty-state {
+  color: var(--color-gray-dark);
+  font-style: italic;
+  padding: 1.2em;
+  text-align: center;
+}
+
+/* Calendar Styling */
+#calendar {
+  margin-top: 1em;
+  background: #fff;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  padding: 1em;
+}
+
+/* Accessibility: focus for inputs & selects */
+input:focus,
+select:focus {
+  outline: 2px solid var(--color-focus);
+  box-shadow: 0 0 0 2px var(--color-focus);
+}
+
+/* Dark Theme */
 body.dark {
-  background: #181818;
-  color: #eee;
+  --color-bg: #181825;
+  --color-section: #22242b;
+  --color-card: #23263a;
+  --color-gray-medium: #343a40;
+  --color-gray-dark: #9ca3af;
+  --color-border: #393a42;
+  --color-primary: #3b82f6;
+  --color-primary-light: #60a5fa;
+  --color-success: #34d399;
+  --color-error: #fb7185;
+  --color-alert: #facc15;
+  --color-text-main: #eee;
+  --color-text-secondary: #a3a3a3;
+  --color-focus: #2563eb99;
 }
-body.dark table,
-body.dark input,
-body.dark select,
-body.dark button {
-  background: #232323;
-  color: #eee;
-  border-color: #444;
+
+/* override some specific elements for extra contrast */
+body.dark select {
+  color: #e0e6ef;
+  background: #23263a;
 }
-body.dark .assignments-table th,
-body.dark .assignments-table td {
-  background: #232323;
-  color: #eee;
+body.dark select:invalid {
+  color: #b0b6c3;
 }
+body.dark select option[disabled],
+body.dark select option[hidden],
+body.dark select option[value=""] {
+  color: #b0b6c3;
+}
+
+body.dark input[type="date"] {
+  color-scheme: dark;
+  background: #23263a;
+  color: #e0e6ef;
+}
+
+body.dark input::placeholder,
+body.dark textarea::placeholder {
+  color: #a3a3a3;
+  opacity: 1;
+}
+
+body.dark input::-webkit-input-placeholder {
+  color: #a3a3a3;
+  opacity: 1;
+}
+body.dark input::-moz-placeholder {
+  color: #a3a3a3;
+  opacity: 1;
+}
+body.dark input:-ms-input-placeholder {
+  color: #a3a3a3;
+  opacity: 1;
+}
+body.dark input::placeholder {
+  color: #a3a3a3;
+  opacity: 1;
+}
+
+body.dark,
+body.dark #app,
+body.dark section,
+body.dark .card,
+body.dark .section-card,
+body.dark #calendar {
+  background: var(--color-bg);
+  color: var(--color-text-main);
+}
+
 body.dark h1,
 body.dark h2,
 body.dark h3 {
-  color: #99cfff;
+  color: #a5d8ff;
+}
+
+body.dark .navbar {
+  background: #23263a;
+}
+
+body.dark .nav-btn {
+  color: #bbe1ff;
+}
+
+body.dark .nav-btn.active,
+body.dark .nav-btn:hover {
+  background: var(--color-primary-light);
+  color: #fff;
+}
+
+body.dark .assignments-table th,
+body.dark .assignments-table td,
+body.dark #study-table th,
+body.dark #study-table td {
+  background: var(--color-section);
+  color: var(--color-text-main);
+}
+
+body.dark .progress-bar-bg {
+  background: var(--color-gray-medium);
+}
+
+body.dark .progress-bar-fill {
+  background: #2dd4bf;
+}
+
+body.dark .remove-subject-btn:hover,
+body.dark .remove-subject-btn:focus {
+  background: var(--color-error);
+  color: #fff;
+}
+
+body.dark .empty-state {
+  color: var(--color-gray-dark);
+}
+
+/* Responsive Design */
+@media (max-width: 700px) {
+  #app {
+    padding: 1em 0.2em;
+    max-width: 99vw;
+  }
+  .navbar {
+    flex-wrap: wrap;
+    gap: 0.2em;
+  }
+  form {
+    flex-direction: column;
+    gap: 0.8em;
+    align-items: stretch;
+  }
+  table,
+  th,
+  td {
+    font-size: 0.97em;
+  }
+  section {
+    padding: 1em;
+  }
+}
+
+/* FullCalendar tweaks (optional) */
+.fc {
+  background: transparent;
+  border-radius: var(--card-radius);
+}
+.fc .fc-toolbar-title {
+  font-family: var(--font-main);
+  font-weight: bold;
+  color: var(--color-primary);
 }

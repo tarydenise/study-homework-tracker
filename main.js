@@ -35,27 +35,27 @@ function showDashboard() {
   const progress = getAcademicProgress();
 
   document.getElementById("app").innerHTML = `
-        <h1>Dashboard</h1>
-        <section>
-            <h2>Upcoming Assignments</h2>
-            ${renderAssignmentsTable(upcoming)}
-        </section>
-        <section>
-            <h2>Past Due Assignments</h2>
-            ${renderAssignmentsTable(past, true)}
-        </section>
-        <section>
-            <h2>Academic Progress</h2>
-            <p>${progress.completed} out of ${
+    <h1>Dashboard</h1>
+    <section>
+      <h2>Upcoming Assignments</h2>
+      ${renderAssignmentsTable(upcoming)}
+    </section>
+    <section>
+      <h2>Past Due Assignments</h2>
+      ${renderAssignmentsTable(past, true)}
+    </section>
+    <section>
+      <h2>Academic Progress</h2>
+      <p>${progress.completed} out of ${
     progress.total
   } assignments completed (${progress.percent}%)</p>
-            <div style="background:#eee;width:100%;border-radius:10px;overflow:hidden;">
-                <div style="background:#4caf50;height:20px;width:${
-                  progress.percent
-                }%;"></div>
-            </div>
-        </section>
-    `;
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: ${
+          progress.percent
+        }%;"></div>
+      </div>
+    </section>
+  `;
 }
 
 function showAssignments() {
@@ -64,7 +64,7 @@ function showAssignments() {
         <form id="assignment-form">
             <input type="text" id="assignment-title" placeholder="Title" required>
             <select id="assignment-subject" required>
-            <option value="">Select Subject</option>
+            <option value="" disabled selected hidden>Select Subject</option>
             ${getSubjects()
               .map((subj) => `<option value="${subj}">${subj}</option>`)
               .join("")}
@@ -72,13 +72,14 @@ function showAssignments() {
             <input type="date" id="assignment-due" required>
             <button type="submit">Add Assignment</button>
         </form>
-        <table id="assignments-table">
+        <table id="assignments-table" class="assignments-table">
             <thead>
                 <tr>
                     <th>Due Date</th>
                     <th>Subject</th>
                     <th>Title</th>
-                    <th>Complete</th>
+                    <th>Completed</th>
+                    <th>Edit / Delete</th>
                 </tr>
             </thead>
             <tbody>
@@ -292,11 +293,17 @@ function showSettings() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  showDashboard();
+  const page = localStorage.getItem("currentPage") || "dashboard";
+  if (page === "dashboard") showDashboard();
+  if (page === "assignments") showAssignments();
+  if (page === "study") showStudyLog();
+  if (page === "calendar") showCalendar();
+  if (page === "settings") showSettings();
 
   document.querySelectorAll(".nav-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
       const page = btn.getAttribute("data-page");
+      localStorage.setItem("currentPage", page);
       if (page === "dashboard") showDashboard();
       if (page === "assignments") showAssignments();
       if (page === "study") showStudyLog();
