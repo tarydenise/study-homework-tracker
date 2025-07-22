@@ -18,6 +18,7 @@
       <button class="nav-btn" data-page="calendar">Calendar</button>
       <button class="nav-btn" data-page="settings">Settings</button>
     </div>
+    
     <div id="app"></div>
     <main id="app">
       <!-- Content will be loaded here -->
@@ -25,5 +26,14 @@
     <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <script src="main.js"></script>
+    <div id="modal-overlay" style="display: none">
+      <div id="modal-dialog">
+        <p id="modal-message"></p>
+        <div class="modal-actions">
+          <button id="modal-confirm-btn">Delete</button>
+          <button id="modal-cancel-btn" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

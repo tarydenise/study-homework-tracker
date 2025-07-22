@@ -472,3 +472,54 @@ body.dark .empty-state {
   font-weight: bold;
   color: var(--color-primary);
 }
+
+/* Modal */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 22, 30, 0.45);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#modal-dialog {
+  background: var(--color-card, #fff);
+  color: var(--color-text-main, #222);
+  padding: 2em 2.3em 1.5em 2.3em;
+  border-radius: 18px;
+  box-shadow: 0 4px 32px #0002;
+  max-width: 350px;
+  min-width: 220px;
+  text-align: center;
+}
+
+#modal-message {
+  margin-bottom: 1.5em;
+  font-size: 1.08em;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1em;
+  justify-content: center;
+}
+#modal-confirm-btn {
+  background: var(--color-error, #f87171);
+  color: #fff;
+  font-weight: bold;
+}
+#modal-cancel-btn {
+  background: var(--color-gray-medium, #d1d5db);
+  color: var(--color-text-main, #222);
+  font-weight: bold;
+}
+body.dark #modal-dialog {
+  background: #25263a;
+  color: #eee;
+}
+body.dark #modal-cancel-btn {
+  background: #393a42;
+  color: #fff;
+}

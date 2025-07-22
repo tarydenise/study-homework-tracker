@@ -3,20 +3,30 @@ if (localStorage.getItem("theme") === "dark") {
   document.body.classList.add("dark");
 }
 
+function showModal(message, onConfirm, confirmText = "Delete") {
+  document.getElementById("modal-message").textContent = message;
+  document.getElementById("modal-confirm-btn").textContent = confirmText;
+  document.getElementById("modal-overlay").style.display = "flex";
+
+  // Remove previous handlers
+  document.getElementById("modal-confirm-btn").onclick = null;
+  document.getElementById("modal-cancel-btn").onclick = null;
+
+  // Confirm
+  document.getElementById("modal-confirm-btn").onclick = function () {
+    document.getElementById("modal-overlay").style.display = "none";
+    if (typeof onConfirm === "function") onConfirm();
+  };
+
+  // Cancel
+  document.getElementById("modal-cancel-btn").onclick = function () {
+    document.getElementById("modal-overlay").style.display = "none";
+  };
+}
+
 // subjects in localStorage
 function getSubjects() {
-  return (
-    JSON.parse(localStorage.getItem("subjects")) || [
-      "Math",
-      "Science",
-      "English",
-      "History",
-      "Art",
-    ]
-  );
-}
-function saveSubjects(subjects) {
-  localStorage.setItem("subjects", JSON.stringify(subjects));
+  return JSON.parse(localStorage.getItem("subjects")) || [];
 }
 
 /* ********************
@@ -239,39 +249,7 @@ function showSettings() {
       const index = Number(btn.getAttribute("data-index"));
       const subjects = getSubjects();
       const subjectToRemove = subjects[index];
-
-      // Check if subject is used
-      const usedInAssignments = getAssignments().some(
-        (a) => a.subject === subjectToRemove
-      );
-      const usedInStudyLog = getStudyLog().some(
-        (s) => s.subject === subjectToRemove
-      );
-
-      if (usedInAssignments || usedInStudyLog) {
-        if (
-          !window.confirm(
-            `"${subjectToRemove}" is used in your assignments or study log.\n\nIf you remove it, ALL assignments and study log entries with this subject will be permanently deleted.\n\nAre you sure you want to continue?`
-          )
-        ) {
-          return;
-        }
-
-        // Remove from all assignments
-        let assignments = getAssignments();
-        assignments = assignments.filter((a) => a.subject !== subjectToRemove);
-        saveAssignments(assignments);
-
-        // Remove from all study logs
-        let studyLog = getStudyLog();
-        studyLog = studyLog.filter((s) => s.subject !== subjectToRemove);
-        saveStudyLog(studyLog);
-      }
-
-      // Remove from subjects list
-      subjects.splice(index, 1);
-      saveSubjects(subjects);
-      showSettings();
+      removeSubject(subjectToRemove);
     });
   });
 
@@ -347,16 +325,18 @@ function addAssignment() {
 }
 
 function deleteAssignment(index) {
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this assignment?"
+  showModal(
+    "Are you sure you want to delete this assignment?",
+    function () {
+      const assignments = getAssignments();
+      assignments.splice(index, 1);
+      saveAssignments(assignments);
+      displayAssignments();
+    },
+    "Delete"
   );
-  if (!confirmDelete) return;
-
-  const assignments = getAssignments();
-  assignments.splice(index, 1);
-  saveAssignments(assignments);
-  displayAssignments();
 }
+window.deleteAssignment = deleteAssignment;
 
 function displayAssignments() {
   const assignments = getAssignments();
@@ -592,3 +572,45 @@ function getAcademicProgress() {
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
   return { total, completed, percent };
 }
+
+/* *********************************
+   Subjects
+** ********************************/
+function removeSubject(subject) {
+  // Check if subject is in use
+  const usedInAssignments = getAssignments().some((a) => a.subject === subject);
+  const usedInStudyLog = getStudyLog().some((s) => s.subject === subject);
+
+  let warning = "";
+  if (usedInAssignments || usedInStudyLog) {
+    warning = `\n\nThis will also remove all assignments and study logs for "${subject}".`;
+  }
+
+  showModal(
+    `Are you sure you want to remove "${subject}" from your subjects?${warning}`,
+    function () {
+      // Remove from subjects array
+      const subjects = getSubjects();
+      const idx = subjects.indexOf(subject);
+      if (idx > -1) subjects.splice(idx, 1);
+      saveSubjects(subjects);
+
+      // Remove from assignments
+      let assignments = getAssignments();
+      assignments = assignments.filter((a) => a.subject !== subject);
+      saveAssignments(assignments);
+
+      // Remove from study log
+      let log = getStudyLog();
+      log = log.filter((s) => s.subject !== subject);
+      saveStudyLog(log);
+
+      // Update all views
+      displayAssignments();
+      displayStudyLog();
+      if (typeof showSettings === "function") showSettings();
+    },
+    "Remove"
+  );
+}
+window.removeSubject = removeSubject;
