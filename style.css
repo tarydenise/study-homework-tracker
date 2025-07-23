@@ -499,6 +499,32 @@ body.dark #modal-cancel-btn {
   color: #fff;
 }
 
+/* Add Subject Banner */
+.empty-banner {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 20px 24px;
+  border-radius: 10px;
+  margin: 32px auto 0 auto;
+  max-width: 500px;
+  text-align: center;
+  font-size: 1.1em;
+}
+.empty-banner a {
+  color: #3b82f6;
+  text-decoration: underline;
+  font-weight: bold;
+  cursor: pointer;
+}
+body.dark .empty-banner {
+  background: #23272f;
+  border-color: #333a45;
+  color: #eee;
+}
+body.dark .empty-banner a {
+  color: #60a5fa;
+}
+
 /* Responsive Design */
 @media (max-width: 700px) {
   #app {

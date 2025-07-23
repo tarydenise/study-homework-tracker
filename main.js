@@ -44,6 +44,30 @@ let editingIndex = null;
 function showDashboard() {
   editingIndex = null;
 
+  const subjects = getSubjects();
+  // Check for empty subjects array
+  if (subjects.length === 0) {
+    document.getElementById("app").innerHTML = `
+      <h1>Dashboard</h1>
+      <div class="empty-banner">
+        <p>
+          <b>No subjects found.</b> 
+          <span>
+            <a href="#" id="go-to-settings-link">Add subjects in Settings</a> to get started!
+          </span>
+        </p>
+      </div>
+    `;
+    // Add event listener to link
+    setTimeout(() => {
+      document.getElementById("go-to-settings-link").onclick = function (e) {
+        e.preventDefault();
+        showSettings();
+      };
+    }, 0);
+    return;
+  }
+
   const upcoming = getUpcomingAssignments();
   const past = getPastAssignments();
   const progress = getAcademicProgress();
