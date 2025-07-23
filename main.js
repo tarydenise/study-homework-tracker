@@ -1,3 +1,7 @@
+let assignmentsSortBy = "dueDate";
+let assignmentsSortDir = "asc";
+let assignmentsSubjectFilter = "";
+
 // On page load, set theme
 if (localStorage.getItem("theme") === "dark") {
   document.body.classList.add("dark");
@@ -69,24 +73,47 @@ function showDashboard() {
 }
 
 function showAssignments() {
+  const subjects = getSubjects();
   document.getElementById("app").innerHTML = `
         <h1>Assignments</h1>
         <form id="assignment-form">
             <input type="text" id="assignment-title" placeholder="Title" required>
             <select id="assignment-subject" required>
             <option value="" disabled selected hidden>Select Subject</option>
-            ${getSubjects()
+            ${subjects
               .map((subj) => `<option value="${subj}">${subj}</option>`)
               .join("")}
             </select>
             <input type="date" id="assignment-due" required>
             <button type="submit">Add Assignment</button>
         </form>
+        <div style="margin:1em 0;">
+          <label>Filter by Subject: 
+            <select id="filter-subject">
+              <option value="">All</option>
+              ${subjects
+                .map((subj) => `<option value="${subj}">${subj}</option>`)
+                .join("")}
+            </select>
+          </label>
+        </div>
         <table id="assignments-table" class="assignments-table">
             <thead>
                 <tr>
-                    <th>Due Date</th>
-                    <th>Subject</th>
+                    <th id="sort-dueDate" style="cursor:pointer;">Due Date ${
+                      assignmentsSortBy === "dueDate"
+                        ? assignmentsSortDir === "asc"
+                          ? "▲"
+                          : "▼"
+                        : ""
+                    }</th>
+                    <th id="sort-subject" style="cursor:pointer;">Subject ${
+                      assignmentsSortBy === "subject"
+                        ? assignmentsSortDir === "asc"
+                          ? "▲"
+                          : "▼"
+                        : ""
+                    }</th>
                     <th>Title</th>
                     <th>Completed</th>
                     <th>Edit / Delete</th>
@@ -107,8 +134,34 @@ function showAssignments() {
       e.preventDefault();
       addAssignment();
     });
-}
 
+  // Sort handlers
+  document.getElementById("sort-dueDate").onclick = function () {
+    if (assignmentsSortBy === "dueDate") {
+      assignmentsSortDir = assignmentsSortDir === "asc" ? "desc" : "asc";
+    } else {
+      assignmentsSortBy = "dueDate";
+      assignmentsSortDir = "asc";
+    }
+    displayAssignments();
+  };
+  document.getElementById("sort-subject").onclick = function () {
+    if (assignmentsSortBy === "subject") {
+      assignmentsSortDir = assignmentsSortDir === "asc" ? "desc" : "asc";
+    } else {
+      assignmentsSortBy = "subject";
+      assignmentsSortDir = "asc";
+    }
+    displayAssignments();
+  };
+
+  // Filter handler
+  document.getElementById("filter-subject").value = assignmentsSubjectFilter;
+  document.getElementById("filter-subject").onchange = function (e) {
+    assignmentsSubjectFilter = e.target.value;
+    displayAssignments();
+  };
+}
 function showStudyLog() {
   editingIndex = null;
 
@@ -345,7 +398,28 @@ function deleteAssignment(index) {
 window.deleteAssignment = deleteAssignment;
 
 function displayAssignments() {
-  const assignments = getAssignments();
+  let assignments = getAssignments();
+
+  // Filter
+  if (assignmentsSubjectFilter) {
+    assignments = assignments.filter(
+      (a) => a.subject === assignmentsSubjectFilter
+    );
+  }
+
+  // Sort
+  assignments = assignments.slice().sort((a, b) => {
+    let valA = a[assignmentsSortBy];
+    let valB = b[assignmentsSortBy];
+    if (assignmentsSortBy === "dueDate") {
+      valA = new Date(valA);
+      valB = new Date(valB);
+    }
+    if (valA < valB) return assignmentsSortDir === "asc" ? -1 : 1;
+    if (valA > valB) return assignmentsSortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
   const tbody = document.querySelector("#assignments-table tbody");
   if (!tbody) return;
   tbody.innerHTML = assignments
@@ -389,10 +463,14 @@ function displayAssignments() {
                     <td>${a.subject}</td>
                     <td>${a.title}</td>
                     <td>
-                        <input type="checkbox" onchange="toggleComplete(${i})" ${
-          a.completed ? "checked" : ""
-        } ${editingIndex === i ? "disabled" : ""}>
-
+                        <input type="checkbox" onchange="toggleComplete('${a.title.replace(
+                          /'/g,
+                          "\\'"
+                        )}', '${a.subject.replace(/'/g, "\\'")}', '${
+          a.dueDate
+        }')" ${a.completed ? "checked" : ""} ${
+          editingIndex === i ? "disabled" : ""
+        }>
                     </td>
                     <td>
                         <button onclick="editAssignment(${i})" ${
@@ -408,8 +486,12 @@ function displayAssignments() {
 }
 window.deleteAssignment = deleteAssignment;
 
-function toggleComplete(index) {
+function toggleComplete(title, subject, dueDate) {
   const assignments = getAssignments();
+  const index = assignments.findIndex(
+    (a) => a.title === title && a.subject === subject && a.dueDate === dueDate
+  );
+  if (index === -1) return;
   const assignment = assignments[index];
   assignment.completed = !assignment.completed;
 
