@@ -437,31 +437,6 @@ body.dark .empty-state {
   color: var(--color-gray-dark);
 }
 
-/* Responsive Design */
-@media (max-width: 700px) {
-  #app {
-    padding: 1em 0.2em;
-    max-width: 99vw;
-  }
-  .navbar {
-    flex-wrap: wrap;
-    gap: 0.2em;
-  }
-  form {
-    flex-direction: column;
-    gap: 0.8em;
-    align-items: stretch;
-  }
-  table,
-  th,
-  td {
-    font-size: 0.97em;
-  }
-  section {
-    padding: 1em;
-  }
-}
-
 /* FullCalendar tweaks (optional) */
 .fc {
   background: transparent;
@@ -522,4 +497,29 @@ body.dark #modal-dialog {
 body.dark #modal-cancel-btn {
   background: #393a42;
   color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 700px) {
+  #app {
+    padding: 1em 0.2em;
+    max-width: 99vw;
+  }
+  .navbar {
+    flex-wrap: wrap;
+    gap: 0.2em;
+  }
+  form {
+    flex-direction: column;
+    gap: 0.8em;
+    align-items: stretch;
+  }
+  table,
+  th,
+  td {
+    font-size: 0.97em;
+  }
+  section {
+    padding: 1em;
+  }
 }

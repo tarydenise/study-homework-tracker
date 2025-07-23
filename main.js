@@ -115,7 +115,7 @@ function showAssignments() {
                         : ""
                     }</th>
                     <th>Title</th>
-                    <th>Completed</th>
+                    <th>Progress</th>
                     <th>Edit / Delete</th>
                 </tr>
             </thead>
@@ -123,9 +123,17 @@ function showAssignments() {
                 <!-- Assignment rows go here -->
             </tbody>
         </table>
-    `;
+
+        <table id="assignments-table" class="assignments-table">
+          <!-- ... -->
+        </table>
+        <h2 style="margin-top:2em;">Completed Assignments</h2>
+        <button id="clear-completed-btn" style="margin-bottom:1em;">Clear Completed Assignments</button>
+        <div id="completed-assignments-table"></div>
+      `;
 
   displayAssignments();
+  displayCompletedAssignments();
 
   // Form submit handler
   document
@@ -161,7 +169,70 @@ function showAssignments() {
     assignmentsSubjectFilter = e.target.value;
     displayAssignments();
   };
+
+  // Clear completed assignments handler
+  document.getElementById("clear-completed-btn").onclick = function () {
+    showModal(
+      "Are you sure you want to clear all completed assignments?",
+      function () {
+        let assignments = getAssignments();
+        assignments = assignments.filter((a) => !a.completed);
+        saveAssignments(assignments);
+        displayAssignments();
+        displayCompletedAssignments();
+      },
+      "Clear"
+    );
+  };
 }
+
+function displayCompletedAssignments() {
+  const assignments = getAssignments().filter((a) => a.completed);
+
+  const container = document.getElementById("completed-assignments-table");
+  if (!container) return;
+
+  if (assignments.length === 0) {
+    container.innerHTML = "<p>No completed assignments.</p>";
+    return;
+  }
+
+  container.innerHTML = `
+    <table class="assignments-table">
+      <thead>
+        <tr>
+          <th>Due Date</th>
+          <th>Subject</th>
+          <th>Title</th>
+          <th>Completed On</th>
+          <th>Mark Incomplete</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${assignments
+          .map(
+            (a) => `
+          <tr>
+            <td>${a.dueDate}</td>
+            <td>${a.subject}</td>
+            <td>${a.title}</td>
+            <td>${a.completedOn || ""}</td>
+            <td>
+              <input type="checkbox" checked onchange="toggleComplete('${a.title.replace(
+                /'/g,
+                "\\'"
+              )}', '${a.subject.replace(/'/g, "\\'")}', '${a.dueDate}')">
+            </td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+window.displayCompletedAssignments = displayCompletedAssignments;
+
 function showStudyLog() {
   editingIndex = null;
 
@@ -407,6 +478,9 @@ function displayAssignments() {
     );
   }
 
+  // Filter out completed assignments
+  assignments = assignments.filter((a) => !a.completed);
+
   // Sort
   assignments = assignments.slice().sort((a, b) => {
     let valA = a[assignmentsSortBy];
@@ -463,14 +537,16 @@ function displayAssignments() {
                     <td>${a.subject}</td>
                     <td>${a.title}</td>
                     <td>
-                        <input type="checkbox" onchange="toggleComplete('${a.title.replace(
+                        <button class="mark-complete-btn" title="Mark as completed"
+                        onclick="toggleComplete('${a.title.replace(
                           /'/g,
                           "\\'"
                         )}', '${a.subject.replace(/'/g, "\\'")}', '${
           a.dueDate
-        }')" ${a.completed ? "checked" : ""} ${
-          editingIndex === i ? "disabled" : ""
-        }>
+        }')"
+                        ${editingIndex === i ? "disabled" : ""}>
+                        Mark Complete
+                      </button>
                     </td>
                     <td>
                         <button onclick="editAssignment(${i})" ${
@@ -484,7 +560,6 @@ function displayAssignments() {
     })
     .join("");
 }
-window.deleteAssignment = deleteAssignment;
 
 function toggleComplete(title, subject, dueDate) {
   const assignments = getAssignments();
@@ -503,6 +578,7 @@ function toggleComplete(title, subject, dueDate) {
 
   saveAssignments(assignments);
   displayAssignments();
+  displayCompletedAssignments();
 
   // update dashboard after completed
   const currentPage = localStorage.getItem("currentPage");
@@ -510,7 +586,6 @@ function toggleComplete(title, subject, dueDate) {
     showDashboard();
   }
 }
-window.toggleComplete = toggleComplete;
 
 function editAssignment(index) {
   editingIndex = index;
