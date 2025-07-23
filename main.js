@@ -503,6 +503,12 @@ function toggleComplete(title, subject, dueDate) {
 
   saveAssignments(assignments);
   displayAssignments();
+
+  // update dashboard after completed
+  const currentPage = localStorage.getItem("currentPage");
+  if (currentPage === "dashboard") {
+    showDashboard();
+  }
 }
 window.toggleComplete = toggleComplete;
 
@@ -649,7 +655,7 @@ function getPastAssignments() {
   return assignments.filter((a) => {
     const due = new Date(a.dueDate);
     due.setHours(0, 0, 0, 0);
-    return due < now;
+    return !a.completed && due < now;
   });
 }
 
