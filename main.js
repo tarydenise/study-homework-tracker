@@ -236,6 +236,7 @@ function showSettings() {
     .addEventListener("submit", function (e) {
       e.preventDefault();
       const val = document.getElementById("new-subject").value.trim();
+      const subjects = getSubjects();
       if (val && !subjects.includes(val)) {
         subjects.push(val);
         saveSubjects(subjects);
@@ -257,17 +258,22 @@ function showSettings() {
   document
     .getElementById("reset-data-btn")
     .addEventListener("click", function () {
-      if (
-        window.confirm(
-          "Are you sure you want to delete all assignments, study log, and subject list? This cannot be undone."
-        )
-      ) {
-        localStorage.removeItem("assignments");
-        localStorage.removeItem("studyLog");
-        localStorage.removeItem("subjects");
-        showSettings();
-      }
+      showModal(
+        "Are you sure you want to delete all assignments, study log, and subject list? This cannot be undone.",
+        function () {
+          localStorage.removeItem("assignments");
+          localStorage.removeItem("studyLog");
+          localStorage.removeItem("subjects");
+          showSettings();
+        },
+        "Delete All"
+      );
     });
+}
+
+// Save Subject
+function saveSubjects(subjects) {
+  localStorage.setItem("subjects", JSON.stringify(subjects));
 }
 
 document.addEventListener("DOMContentLoaded", function () {
